@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: authDB
+      POSTGRES_USER: authUser
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/table:/docker-entrypoint-initdb.d
+    networks:
+      - mynetwork
+  master-apps:
+    build:
+      context: ./masterApps
+      dockerfile: Dockerfile
+    container_name: masterService
+    ports:
+      - "8090:8090"
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+  payment-apps:
+    build:
+      context: ./paymentApps
+      dockerfile: Dockerfile
+    container_name: paymentService
+    ports:
+      - "8091:8091"
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  pgdata:
